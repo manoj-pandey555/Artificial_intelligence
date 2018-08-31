@@ -1,5 +1,6 @@
 # Artificial_intelligence
 This repsitory contain programs belongs to artificial intelligence.
+
 Study reference:- Online lectures and book(Introduction to Artificial Intellegence) on AI by MIT professor Wolfgang Ertel.
 
 Projects:-
