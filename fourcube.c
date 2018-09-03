@@ -1,12 +1,22 @@
+/* Description:- This program is created to analyze the search complexity in
+				 any inference(without knowledge) system.
+** Author:- Manoj Pandey
+*/
+
 #include<stdio.h>
 #include<assert.h>
 #include<malloc.h>
 #include<string.h>
 #include<time.h>
 
-//struct which will replicate 4x4 matrix along with pointes to traverse both 
-//forward and backward states
-struct node{
+/*Structure which will replicate 4x4 matrix along with pointers to traverse
+* both forward and backward states.
+*/
+/*In four-cube problem we will have a maximum of 2 child nodes corresponding
+* to a parent node. Hence in the node structure only two pointers are sufficient
+* for holding these child(lchild & rchild) nodes.
+*/
+ struct node{
 	int zero_zero;
 	int zero_one;
 	int one_zero;
@@ -24,11 +34,12 @@ enum{
 	ONE_ONE
 };
 
-//queue for temporary storage of next states
+//queue for the temporary storage of next states
 //it help us to traverse in BFS
+//For four-cube a queue of length 2 is sufficient.
 struct node *queue[2] = {NULL, NULL};
 
-//Insertion logic in queue
+//Insertion logic in queue.
 void insert( struct node* temp)
 {
 	if(queue[0] == NULL)
@@ -36,7 +47,7 @@ void insert( struct node* temp)
 	else if(queue[1] == NULL)
 		queue[1] = temp;
 	else
-		assert(0 && "unable to insert");
+		assert(0 && "unable to insert the node in queue");
 }
 
 void swap( int* temp1, int* temp2)
@@ -60,18 +71,24 @@ int is_goal_found(int *goal_found_at_index, struct node* pgoal)
 		}
 
 	}
-	
+
 	return 0;
 }
 
+void print_node(struct node *pnode)
+{
+	printf("[%d %d]\n", pnode->zero_zero, pnode->zero_one);
+	printf("[%d %d]\n", pnode->one_zero, pnode->one_one);
+	printf("\n");
+}
 int main()
 {
 
 	int empty_space, i, temp, goal_found_at_index = 0;
 	double start_time, end_time;
 	struct node *pproblem, *pgoal, *ptemp = NULL;
-	
-	//initializing problem node. Hardcoded for testing purpose
+
+	//initializing problem(start state) node. Hard-coded for testing purpose
 	pgoal = malloc(sizeof(struct node));
 	pproblem = malloc(sizeof(struct node));
 	pproblem->zero_zero = 3;
@@ -82,7 +99,9 @@ int main()
 	pproblem->lchild = NULL;
 	pproblem->rchild = NULL;
 
-	//initializing goal node, hardcoded for testing purpose	
+    printf("Start state node:\n");
+	print_node(pproblem);
+	//initializing goal node, hard-coded for testing purpose
 	pgoal->zero_zero = 1;
 	pgoal->zero_one = 2;
 	pgoal->one_zero = 3;
@@ -90,6 +109,9 @@ int main()
 	pgoal->parent = NULL;
 	pgoal->lchild = NULL;
 	pgoal->rchild = NULL;
+
+	printf("Goal state node:\n");
+	print_node(pgoal);
 
 	start_time = clock();
 	insert(pproblem);
@@ -105,18 +127,18 @@ int main()
 				//logic to find the empty co-ordinate in the matrix
 				if(!ptemp->zero_zero)
 					empty_space = ZERO_ZERO;
-					
+
 				else if(!ptemp->zero_one)
 					empty_space = ZERO_ONE;
-					
+
 				else if(!ptemp->one_zero)
 					empty_space = ONE_ZERO;
-					
+
 				else if(!ptemp->one_one)
 					empty_space = ONE_ONE;
-				else 
+				else
 					assert(0 && "none of the element in this node is having value 0");
-				
+
 				//create two possible next state from the current state and initialize them
 				ptemp->lchild = malloc(sizeof(struct node));
 				ptemp->rchild = malloc(sizeof(struct node));
@@ -150,18 +172,24 @@ int main()
 						break;
 					default:
 						assert(0 && "switch case value is out of range");
-						
-				}			
 
-				//logic to remove redundant states to save comutation time and space for storage
-				if((ptemp->parent)&&(ptemp->parent->zero_zero == ptemp->lchild->zero_zero)&&(ptemp->parent->zero_one == ptemp->lchild->zero_one)\
+				}
+
+				/*In four-cube, each grandfather node will be exactly similar to
+				* one of its grandchildren node. Hence we can remove redundant
+				* states to save computation time and storage space. Below
+				* mentioned conditions are specific to the four-cube problem.
+				*/
+				if((ptemp->parent)&&(ptemp->parent->zero_zero == ptemp->lchild->zero_zero)\
+					&&(ptemp->parent->zero_one == ptemp->lchild->zero_one)\
 					&&(ptemp->parent->one_zero == ptemp->lchild->one_zero)\
 					&&(ptemp->parent->one_one == ptemp->lchild->one_one))
 				{
 				    free(ptemp->lchild);
 				    ptemp->lchild = NULL;
 				}
-				if((ptemp->parent)&&(ptemp->parent->zero_zero == ptemp->rchild->zero_zero)&&(ptemp->parent->zero_one == ptemp->rchild->zero_one)\
+				if((ptemp->parent)&&(ptemp->parent->zero_zero == ptemp->rchild->zero_zero)\
+					&&(ptemp->parent->zero_one == ptemp->rchild->zero_one)\
 					&&(ptemp->parent->one_zero == ptemp->rchild->one_zero)\
 					&&(ptemp->parent->one_one == ptemp->rchild->one_one))
 				{
@@ -178,17 +206,17 @@ int main()
 		if(is_goal_found(&goal_found_at_index, pgoal))
 			break;
 	}//while(1)
-	end_time = clock();	
-	
+	end_time = clock();
+
 //logic to print all the states from the first found goal state to start state
 	ptemp = queue[goal_found_at_index];
+	printf("Traversing back from goal node to start nod:\n");
 	do{
-		printf("[%d  %d]\n", ptemp->zero_zero, ptemp->zero_one);
-		printf("[%d  %d]\n", ptemp->one_zero, ptemp->one_one);
-		printf("   ||   \n");
+        print_node(ptemp);
 	}while(ptemp = ptemp->parent);
-	printf("Total time taken by program to reach to goal state from start state:%lfs\n",(double)(end_time - start_time)/CLOCKS_PER_SEC);
-	
+	printf("Total time taken by program to reach to goal state from start state:\
+            %lfs\n",(double)(end_time - start_time)/CLOCKS_PER_SEC);
+
 	return 0;
 }
 
